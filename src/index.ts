@@ -1,9 +1,12 @@
-import { Hono } from 'hono'
+import app from "./app";
 
-const app = new Hono()
+const host = Bun.env.HOST || "localhost";
+const port = Bun.env.PORT || 3000;
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
 
-export default app
+console.log(`Server running at http://${host}:${port}`);
+Bun.serve({
+  fetch: app.fetch,
+  hostname: host,
+  port: port,
+});

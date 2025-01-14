@@ -1,12 +1,19 @@
 {
   "name": "weave-backend",
   "scripts": {
-    "dev": "bun run --hot src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "db:generate": "bun drizzle-kit generate",
+    "db:migrate": "bun drizzle-kit migrate",
+    "db:push": "bunx drizzle-kit push"
   },
   "dependencies": {
-    "hono": "^4.6.16"
+    "drizzle-orm": "^0.38.3",
+    "hono": "^4.6.16",
+    "pg": "^8.13.1"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.30.1"
   }
 }
