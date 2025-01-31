@@ -1,9 +1,12 @@
-import { Hono } from "hono";
+import { Hono } from 'hono'
+import { userRouter } from './routes/userRouter'
+import { cors }  from 'hono/cors'
 
-const app = new Hono();
+const app = new Hono()
 
-app.get("/", (c) => {
-  return c.text("Hello");
-});
+app.use('/*', cors())
+app.route('/api/v1/user', userRouter)
 
-export default app;
+
+
+export default app

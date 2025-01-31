@@ -8,11 +8,16 @@
     "start": "bun run src/index.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^0.38.3",
-    "hono": "^4.6.16",
-    "pg": "^8.13.1"
+    "@hono/zod-validator": "^0.4.2",
+    "bcrypt": "^5.1.1",
+    "drizzle-orm": "^0.38.4",
+    "hono": "^4.6.20",
+    "pg": "^8.13.1",
+    "z": "^1.0.9",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/bun": "latest",
     "@types/pg": "^8.11.10",
     "drizzle-kit": "^0.30.1"
