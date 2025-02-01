@@ -8,3 +8,9 @@ export const usersTable = pgTable("users", {
   avatarUrl: text("avatar_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+export const tokensTable = pgTable("tokens", {
+  token: text("token").notNull().unique().primaryKey(),
+  email: text("email").notNull().unique(),
+  expiresAt: timestamp("created_at").notNull(),
+})
