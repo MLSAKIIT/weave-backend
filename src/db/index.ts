@@ -1,3 +1,10 @@
 import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 
-const db = drizzle(Bun.env.DATABASE_URL!);
+const pool = new Pool({
+    connectionString: Bun.env.DATABASE_URL!, 
+});
+
+const db = drizzle(pool); 
+
+export default db;
