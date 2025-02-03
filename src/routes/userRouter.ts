@@ -63,7 +63,7 @@ userRouter.post("/signIn", zValidator("json", signInSchema), async (c) => {
             return c.json({ error: "Invalid credentials" });
         }
 
-        const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);//authenticating jwt token
+        const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);//authenticating jwt token (I hardcoded this because there was some issue in accessing the environmental variable)
         return c.json({ token: jwt });
     } catch (e) {
         console.error("Sign-in error:", e);
