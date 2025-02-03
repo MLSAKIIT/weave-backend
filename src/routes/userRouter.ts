@@ -5,9 +5,10 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 
 import db from "../db/index";
-import { usersTable } from "../db/schema";
+import { usersTable, tokensTable } from "../db/schema";
 
 import { eq } from "drizzle-orm";
+import { sendEMail } from "../lib/mailer";
 
 export const userRouter = new Hono<{
     Bindings: {
@@ -38,6 +39,8 @@ userRouter.post("/signUp", zValidator("json", signUpSchema), async (c) => {
             passwordHash: hashedPassword,
         });
 
+        sendEMail(email, hashedPassword);//sending email
+
         return c.json({ message: "User signed up successfully" });
     } catch (e) {
         console.error("Database error:", e);
@@ -45,6 +48,34 @@ userRouter.post("/signUp", zValidator("json", signUpSchema), async (c) => {
         return c.json({ error: "Error creating user" });
     }
 });
+
+// verify Email route
+userRouter.get("/verify-email", async (c) => {
+    const token = c.req.query('token') as string;
+    console.log('Received Token:', token); // Log the received token
+
+    try {
+        const tokenRecord = (await db.select().from(tokensTable).where(eq(tokensTable.token, token)).limit(1))[0];
+        if (!tokenRecord) {
+            return c.json({ message: 'Invalid token' }, 401);
+        }
+
+        if (tokenRecord.expiresAt && new Date(tokenRecord.expiresAt) < new Date()) {
+            return c.json({ message: 'Token expired' }, 400);
+        }
+
+        await db.update(tokensTable)
+        .set({ token: undefined, expiresAt: undefined }) 
+        .where(eq(tokensTable.token, token));
+
+        return c.json({ message: 'Token verified and invalidated successfully' });
+    } catch (e) {
+        console.error("Database error:", e);
+        return c.json({ error: "Error verifying token" }, 500);
+    }
+});
+
+
 //signIn route
 userRouter.post("/signIn", zValidator("json", signInSchema), async (c) => {
     const { email, password } = await c.req.valid("json");
