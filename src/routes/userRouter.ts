@@ -6,8 +6,14 @@ import { zValidator } from "@hono/zod-validator";
 
 import db from "../db/index";
 import { usersTable } from "../db/schema";
+import * as bcryptjs from 'bcryptjs';
+import * as nodemailer from 'nodemailer';
 
 import { eq } from "drizzle-orm";
+
+// Route imports
+
+import { signUp, verifyEmail } from "../controllers/userController";
 
 export const userRouter = new Hono<{
     Bindings: {
@@ -30,19 +36,46 @@ const signInSchema = z.object({
 userRouter.post("/signUp", zValidator("json", signUpSchema), async (c) => {
     const { fullName, email, password } = await c.req.valid("json");
     const hashedPassword = await Bun.password.hash(password);//hashing password
+    const hashedToken = await bcryptjs.hash(email, 10);
+
+    console.log("Hashed token:", hashedToken);
+    
 
     try {
         await db.insert(usersTable).values({
             fullName,
             email,
             passwordHash: hashedPassword,
+            verificationToken: hashedToken,
+            verificationTokenExpiry: new Date(Date.now() + 3600000) // 1 hour from now
         });
 
-        return c.json({ message: "User signed up successfully" });
-    } catch (e) {
+        // Looking to send emails in production? Check out our Email API/SMTP product!
+var transport = nodemailer.createTransport({
+    host: "sandbox.smtp.mailtrap.io",
+    port: 2525,
+    auth: {
+      user: "9167ce5cb37411",
+      pass: "71ef912b7cb960"
+    }
+  });
+
+
+
+        const mailOptions = {
+            from: 'mlsa@gmail.com',
+            to: email,
+            subject: 'Verify your email',
+            html: `<p>Please verify your email by clicking the following link:</p><a href="http://localhost:3000/verify-email?token=${hashedToken}">Verify Email</a>`
+        };
+
+        await transport.sendMail(mailOptions);
+
+        return c.json({ message: "User signed up successfully and verification token generated" });
+    } catch (e: any) {
         console.error("Database error:", e);
         c.status(500);
-        return c.json({ error: "Error creating user" });
+        return c.json({ error: "Error creating user", details: e.message });
     }
 });
 //signIn route
@@ -71,3 +104,7 @@ userRouter.post("/signIn", zValidator("json", signInSchema), async (c) => {
         return c.json({ error: "Error signing in" });
     }
 });
+
+
+
+userRouter.post("/verify-email", verifyEmail);
