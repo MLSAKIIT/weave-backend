@@ -5,9 +5,10 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 
 import db from "../db/index";
-import { usersTable } from "../db/schema";
+import { tokensTable, usersTable } from "../db/schema";
 
 import { eq } from "drizzle-orm";
+import { sendEMail } from "../lib/mailer";
 
 export const userRouter = new Hono<{
     Bindings: {
@@ -30,12 +31,23 @@ const signInSchema = z.object({
 userRouter.post("/signUp", zValidator("json", signUpSchema), async (c) => {
     const { fullName, email, password } = await c.req.valid("json");
     const hashedPassword = await Bun.password.hash(password);//hashing password
-
     try {
         await db.insert(usersTable).values({
             fullName,
             email,
             passwordHash: hashedPassword,
+        });
+        //sending email
+        sendEMail(email, hashedPassword);
+
+        const token = hashedPassword;
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 1); 
+
+        await db.insert(tokensTable).values({
+            token,
+            email,
+            expiresAt,
         });
 
         return c.json({ message: "User signed up successfully" });
@@ -45,6 +57,45 @@ userRouter.post("/signUp", zValidator("json", signUpSchema), async (c) => {
         return c.json({ error: "Error creating user" });
     }
 });
+
+// verify email
+userRouter.get("/verify-email", async (c) => {
+    const token = c.req.query('token') as string;
+    const email = c.req.query('email') as string;
+    console.log('Received Token:', token); 
+    console.log('Received Email:', email);
+
+    if (!token) {
+        return c.json({ message: 'Token is required' }, 400);
+    }
+
+    if (!email) {
+        return c.json({ message: 'Email is required' }, 400);
+    }
+
+    try {
+        const tokenRecordQuery = db.select().from(tokensTable).where(eq(tokensTable.token, token)).limit(1);
+        const tokenRecord = (await tokenRecordQuery)[0];
+
+
+        if (!tokenRecord) {
+            return c.json({ message: 'Invalid token' }, 401);
+        }
+
+        if (tokenRecord.expiresAt && new Date(tokenRecord.expiresAt) < new Date()) {
+            return c.json({ message: 'Token expired' }, 400);
+        }
+        
+        //delete
+        await db.delete(tokensTable).where(eq(tokensTable.token, token));
+        
+        return c.json({ message: 'Token verified and invalidated successfully' });
+    } catch (e) {
+        console.error("Database error:", e);
+        return c.json({ error: "Error verifying token" }, 500);
+    }
+});
+
 //signIn route
 userRouter.post("/signIn", zValidator("json", signInSchema), async (c) => {
     const { email, password } = await c.req.valid("json");
