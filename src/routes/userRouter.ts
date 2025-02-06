@@ -32,7 +32,7 @@ userRouter.post("/signUp", zValidator("json", signUpSchema), async (c) => {
     const { fullName, email, password } = await c.req.valid("json");
     const hashedPassword = await Bun.password.hash(password);//hashing password
     //creating token
-    const token = await Bun.password.hash(`${email}-${Date.now()}`);
+    const token =await sign({ email, fullName }, Bun.env.JWT_SECRET);
     try {
         await db.insert(usersTable).values({
             fullName,
