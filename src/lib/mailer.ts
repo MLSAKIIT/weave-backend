@@ -6,8 +6,8 @@ export const sendEMail = async(email: string, hashedToken: any ) => {
                     host: "sandbox.smtp.mailtrap.io",
                     port: 2525,
                     auth: {
-                        user: "BUN.env.MAIL_USERNAME",
-                        pass: "BUN.env.MAIL_PASSWORD"
+                        user: Bun.env.MAIL_USERNAME,
+                        pass: Bun.env.MAIL_PASSWORD
                     }
                 });
                 

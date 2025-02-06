@@ -31,6 +31,8 @@ const signInSchema = z.object({
 userRouter.post("/signUp", zValidator("json", signUpSchema), async (c) => {
     const { fullName, email, password } = await c.req.valid("json");
     const hashedPassword = await Bun.password.hash(password);//hashing password
+    //creating token
+    const token = await Bun.password.hash(`${email}-${Date.now()}`);
     try {
         await db.insert(usersTable).values({
             fullName,
@@ -38,9 +40,7 @@ userRouter.post("/signUp", zValidator("json", signUpSchema), async (c) => {
             passwordHash: hashedPassword,
         });
         //sending email
-        sendEMail(email, hashedPassword);
-
-        const token = hashedPassword;
+        sendEMail(email, token);
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 1); 
 
