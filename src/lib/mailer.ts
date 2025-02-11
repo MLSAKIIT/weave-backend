@@ -16,7 +16,7 @@ export const sendEMail = async(email: string, hashedToken: any ) => {
                     from: 'mlsa@gmail.com',
                     to: email,
                     subject: 'Verify your email',
-                    html: `<p>Please verify your email by clicking the following link:</p><a href="http://localhost:${Bun.env.PORT}/api/v1/user/verify-email?token=${hashedToken}&email=${email}">Verify Email</a>`
+                    html: `<p>Please verify your email by clicking the following link:</p><a href="http://localhost:4000/verification?token=${hashedToken}&email=${email}">Verify Email</a>`
                 };
         
                 await transport.sendMail(mailOptions);

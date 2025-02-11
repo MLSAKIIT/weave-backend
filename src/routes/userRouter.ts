@@ -32,7 +32,7 @@ userRouter.post("/signUp", zValidator("json", signUpSchema), async (c) => {
     const { fullName, email, password } = await c.req.valid("json");
     const hashedPassword = await Bun.password.hash(password);//hashing password
     //creating token
-    const token =await sign({ email, fullName }, Bun.env.JWT_SECRET);
+    const token =await sign({ email, fullName }, Bun.env.JWT_SECRET as string);
     try {
         await db.insert(usersTable).values({
             fullName,
@@ -114,8 +114,9 @@ userRouter.post("/signIn", zValidator("json", signInSchema), async (c) => {
             return c.json({ error: "Invalid credentials" });
         }
 
-        const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);//authenticating jwt token (I hardcoded this because there was some issue in accessing the environmental variable)
-        return c.json({ token: jwt });
+        const jwt = await sign({ id: user.id }, Bun.env.JWT_SECRET as string);
+        c.header("Set-Cookie", `auth_token=${jwt}; HttpOnly; SameSite=Strict; Path=/; Max-Age=604800`);
+        return c.json({ message: "Login successful" },200);
     } catch (e) {
         console.error("Sign-in error:", e);
         c.status(500);

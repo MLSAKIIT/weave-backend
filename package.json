@@ -10,9 +10,11 @@
   "dependencies": {
     "@hono/zod-validator": "^0.4.2",
     "bcrypt": "^5.1.1",
+    "cookie": "^1.0.2",
     "drizzle-orm": "^0.38.4",
     "hono": "^4.6.20",
     "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.10.0",
     "pg": "^8.13.1",
     "z": "^1.0.9",
     "zod": "^3.24.1"
@@ -20,6 +22,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/bun": "latest",
+    "@types/nodemailer": "^6.4.17",
     "@types/pg": "^8.11.10",
     "drizzle-kit": "^0.30.1"
   }

@@ -6,12 +6,17 @@ import authRouter from "./routes/authRouter";
 const app = new Hono();
 
 
-app.use("/*", cors({
-  origin: "http://192.168.1.74:3000", 
-  allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowHeaders: ["Content-Type", "Authorization"],
-  credentials: true, 
-}));
+app.use(
+  "/*",
+  cors({
+    origin: "http://localhost:4000",
+    credentials: true,
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+
 
 app.route("/api/v1/user", userRouter);
 app.route("/api/v1/auth", authRouter);
