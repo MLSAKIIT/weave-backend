@@ -4,8 +4,7 @@ import { z } from "zod";
 import db from "../db";
 import { tokensTable, usersTable } from "../db/schema";
 import { eq } from "drizzle-orm";
-
-
+import {getCookie} from 'hono/cookie'
 const authRouter = new Hono();
 
 
@@ -18,6 +17,16 @@ const resetPasswordSchema = z.object({
     path: ["confirmPassword"]
 })
 
+authRouter.get("/check-auth", async (c) => {
+    const authToken = getCookie(c,"auth_token");
+    console.log(authToken)
+    if (!authToken) {
+      return c.json({ authenticated: false, message: "No auth token found" }, 401);
+    }
+  
+    return c.json({ authenticated: true, message: "User is authenticated" });
+  });
+  
 
 authRouter.post('/reset-password', zValidator("json", resetPasswordSchema), async (c) => {
 

@@ -1,13 +1,24 @@
-import { Hono } from 'hono'
-import { userRouter } from './routes/userRouter'
-import { cors } from 'hono/cors'
-import authRouter from './routes/authRouter'
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { userRouter } from "./routes/userRouter";
+import authRouter from "./routes/authRouter";
 
-const app = new Hono()
+const app = new Hono();
 
-app.use('/*', cors())
-app.route('/api/v1/user', userRouter)
 
-app.route('/api/v1/auth', authRouter)
+app.use(
+  "/*",
+  cors({
+    origin: "http://localhost:4000",
+    credentials: true,
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-export default app
+
+
+app.route("/api/v1/user", userRouter);
+app.route("/api/v1/auth", authRouter);
+
+export default app;
