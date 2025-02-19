@@ -32,15 +32,17 @@ userRouter.post("/signUp", zValidator("json", signUpSchema), async (c) => {
     const { fullName, email, password } = await c.req.valid("json");
     const hashedPassword = await Bun.password.hash(password);//hashing password
     //creating token
-    const token =await sign({ email, fullName }, Bun.env.JWT_SECRET as string);
+    const task="verification"
+    const token =await sign({ email }, Bun.env.JWT_SECRET as string);
     try {
         await db.insert(usersTable).values({
             fullName,
             email,
             passwordHash: hashedPassword,
+            verified: false
         });
         //sending email
-        sendEMail(email, token);
+        sendEMail(email, token, task);
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + 1); 
 
@@ -86,9 +88,12 @@ userRouter.get("/verify-email", async (c) => {
             return c.json({ message: 'Token expired' }, 400);
         }
         
-        //delete
-        await db.delete(tokensTable).where(eq(tokensTable.token, token));
-        
+        const [user]=await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
+        if(!user)return c.json({message: "User not found"}, 404)
+        await db.update(usersTable)
+    .set({verified: true})  //verified the user
+    .where(eq(usersTable.email, email))
+    await db.delete(tokensTable).where(eq(tokensTable.token, token));
         return c.json({ message: 'Token verified and invalidated successfully' });
     } catch (e) {
         console.error("Database error:", e);
@@ -99,13 +104,19 @@ userRouter.get("/verify-email", async (c) => {
 //signIn route
 userRouter.post("/signIn", zValidator("json", signInSchema), async (c) => {
     const { email, password } = await c.req.valid("json");
-
+    const token =await sign({ email }, Bun.env.JWT_SECRET as string);
+    const task="verification"
     try {
         const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
 
         if (!user) {
             c.status(403);
             return c.json({ error: "Invalid credentials" });
+        }
+
+        if(!user.verified){
+            sendEMail(email, token, task)
+            return c.json({ message: 'Email not verified. Please check your email for verification link.' });
         }
 
         const validPassword = await Bun.password.verify(password, user.passwordHash);//verifying password
@@ -123,3 +134,27 @@ userRouter.post("/signIn", zValidator("json", signInSchema), async (c) => {
         return c.json({ error: "Error signing in" });
     }
 });
+
+userRouter.post("/forgot-password",async(c)=>{
+    try{
+        const { email } = await c.req.json();
+        console.log(email)
+        if(!email)return c.json({error: "Email is required"});
+        const user = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1)
+        if(!user)return c.json({error: "User not found"});
+        const token =await sign({ email }, Bun.env.JWT_SECRET as string);
+        const task="Password Reset"
+        sendEMail(email,token,task)
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 1); 
+
+        await db.insert(tokensTable).values({
+            token,
+            email,
+            expiresAt,
+        });
+        return c.json({message: "Password reset link sent to your email."})
+    }catch{
+        return c.json({message: "Error sending email"});
+    }
+})

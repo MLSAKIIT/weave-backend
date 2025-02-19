@@ -15,6 +15,13 @@
       "when": 1738749463988,
       "tag": "0004_serialnotsupported",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1739943302344,
+      "tag": "0005_real_firebrand",
+      "breakpoints": true
     }
   ]
 }
