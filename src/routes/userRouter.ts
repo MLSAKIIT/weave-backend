@@ -127,7 +127,7 @@ userRouter.post("/signIn", zValidator("json", signInSchema), async (c) => {
 
         const jwt = await sign({ id: user.id }, Bun.env.JWT_SECRET as string);
         c.header("Set-Cookie", `auth_token=${jwt}; HttpOnly; SameSite=Strict; Path=/; Max-Age=604800`);
-        return c.json({ message: "Login successful" },200);
+        return c.json({ token : jwt },200);
     } catch (e) {
         console.error("Sign-in error:", e);
         c.status(500);
