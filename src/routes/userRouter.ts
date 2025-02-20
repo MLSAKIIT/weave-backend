@@ -153,7 +153,7 @@ userRouter.post("/forgot-password",async(c)=>{
             email,
             expiresAt,
         });
-        return c.json({message: "Password reset link sent to your email."})
+        return c.json({message: "Password reset link sent to your email.", success: true})
     }catch{
         return c.json({message: "Error sending email"});
     }
