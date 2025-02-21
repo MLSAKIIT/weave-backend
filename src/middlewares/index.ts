@@ -1,37 +1,23 @@
-import { Hono } from "hono";
-import { verify } from 'hono/jwt'
+import { Context, Next } from "hono";
+import { verify } from 'hono/jwt';
+import { getCookie } from 'hono/cookie';
 
-export const router = new Hono<{
-    Bindings: {
-        DATABASE_URL: string;
-        JWT_SECRET: string;
-    },
-    Variables: {
-        userId: string;
+export const cookieVerificationMiddleware = async (c: Context, next: Next) => {
+    const cookieToken = getCookie(c, 'token') || '';
+
+    if (!cookieToken) {
+        return c.json({ error: "No token found in cookies" },403);
     }
-}>();
 
-
-// Middleware for authenticating user's jwt token and setting userId in context variable for future use in routes 
-
-router.use('/*', async (c, next) => {
-    const authHeader = c.req.header('Authorization') || '';
     try {
-        const user = await verify(authHeader, c.env.JWT_SECRET);
+        const user = await verify(cookieToken, c.env.JWT_SECRET);
         if (user) {
             c.set("userId", String(user.id));
             await next();
-        }
-        else {
-            c.status(403);
-            return c.json({
-                error: "You are not logged in"
-            })
+        } else {
+            return c.json({ error: "Invalid token" },403);
         }
     } catch (e) {
-        c.status(403);
-        return c.json({
-            error: "You are not logged in"
-        })
+        return c.json({ error: "Token verification failed" }, 403);
     }
-});
+};
