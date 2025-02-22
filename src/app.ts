@@ -5,11 +5,10 @@ import authRouter from "./routes/authRouter";
 
 const app = new Hono();
 
-
 app.use(
   "/*",
   cors({
-    origin: "http://localhost:4000",
+    origin: process.env.LOCAL_HOST!,
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
