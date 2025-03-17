@@ -11,6 +11,8 @@ services:
     restart: unless-stopped
     networks:
       - shared-network
+    depends_on:
+      - db
     
   db:
     container_name: weave-pg
