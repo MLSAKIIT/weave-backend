@@ -1,0 +1,39 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - shared-network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - shared-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  shared-network:
+    driver: bridge

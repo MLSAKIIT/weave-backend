@@ -5,7 +5,8 @@
     "db:generate": "bun drizzle-kit generate",
     "db:migrate": "bun drizzle-kit migrate",
     "db:push": "bunx drizzle-kit push",
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "prod:migrate": "bun run src/migrate.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.4.2",
