@@ -1,5 +1,6 @@
 services:
   api:
+    container_name: weave-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,6 +13,7 @@ services:
       - shared-network
     
   db:
+    container_name: weave-pg
     image: postgres:15-alpine
     ports:
       - "5432:5432"
