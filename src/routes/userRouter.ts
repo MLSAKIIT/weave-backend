@@ -114,10 +114,10 @@ userRouter.post("/signIn", zValidator("json", signInSchema), async (c) => {
             return c.json({ error: "Invalid credentials" });
         }
 
-        // if(!user.verified){
-        //     sendEMail(email, token, task)
-        //     return c.json({ message: 'Email not verified. Please check your email for verification link.' });
-        // }
+        if(!user.verified){
+            sendEMail(email, token, task)
+            return c.json({ message: 'Email not verified. Please check your email for verification link.' });
+        }
 
         const validPassword = await Bun.password.verify(password, user.passwordHash);//verifying password
         if (!validPassword) {
