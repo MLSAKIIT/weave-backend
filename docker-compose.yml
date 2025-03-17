@@ -19,9 +19,8 @@ services:
     image: postgres:15-alpine
     ports:
       - "5432:5432"
-    environment:
-      - POSTGRES_USER=nikhil
-      - POSTGRES_PASSWORD=123
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
